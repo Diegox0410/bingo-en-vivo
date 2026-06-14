@@ -2,32 +2,43 @@ import { useState } from "react";
 import jsPDF from "jspdf";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../services/Firebase";
+import userImg from "../assets/User.png"; // 🔥 IMPORTANTE
 
 export default function RegistroForm({
   seleccionados = [],
   setSeleccionados = () => {},
-  participantes = [],
 }) {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
 
   const generarPDF = () => {
-    const doc = new jsPDF();
+    const img = new Image();
+    img.src = userImg;
 
-    doc.setFontSize(18);
-doc.text("COMPROBANTE DE RIFA", 20, 20);
+    img.onload = () => {
+      const doc = new jsPDF();
 
-doc.setFontSize(12);
-doc.text(`Nombre: ${nombre}`, 20, 35);
-doc.text(`Telefono: ${telefono}`, 20, 45);
+      doc.setFontSize(18);
+      doc.text("COMPROBANTE DE RIFA", 20, 20);
 
-doc.text("Numeros:", 20, 60);
-doc.text(seleccionados.join(", "), 20, 75);
+      // 📷 imagen
+      doc.addImage(img, "PNG", 140, 10, 50, 50);
 
-doc.text("Te agradecemos por ayudar a nuestro emilioso:", 20, 60);
-doc.text(seleccionados.join(", "), 20, 75);
+      doc.setFontSize(12);
+      doc.text(`Nombre: ${nombre}`, 20, 40);
+      doc.text(`Telefono: ${telefono}`, 20, 50);
 
-    doc.save("comprobante-rifa.pdf");
+      doc.text("Numeros:", 20, 65);
+      doc.text(seleccionados.join(", "), 20, 75);
+
+      doc.text(
+        "Te agradecemos por ayudar a nuestro emprendimiento",
+        20,
+        95
+      );
+
+      doc.save("comprobante-rifa.pdf");
+    };
   };
 
   const guardar = async () => {
@@ -55,7 +66,7 @@ doc.text(seleccionados.join(", "), 20, 75);
       setTelefono("");
       setSeleccionados([]);
 
-      generarPDF(); // 🔥 SOLO AQUÍ
+      generarPDF(); // 🔥 aquí se genera
     } catch (err) {
       console.error(err);
     }
@@ -63,7 +74,6 @@ doc.text(seleccionados.join(", "), 20, 75);
 
   return (
     <div className="registro-form">
-
       <h2>📋 Datos de reserva</h2>
 
       <input
@@ -81,9 +91,8 @@ doc.text(seleccionados.join(", "), 20, 75);
       <p>Seleccionados: {seleccionados.length}</p>
 
       <button className="btn btn-reservar" onClick={guardar}>
-  Confirmar reserva
-</button>
-
+        Confirmar reserva
+      </button>
     </div>
   );
 }
