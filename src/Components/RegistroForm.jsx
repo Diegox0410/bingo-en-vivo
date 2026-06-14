@@ -16,7 +16,7 @@ import {
   collection,
 } from "firebase/firestore";
 
-import { db } from "../services/firebase";
+import { db } from "../services/Firebase";
 
 export default function RegistroForm({
   numero,
