@@ -819,19 +819,4 @@ h2 {
   from { transform: translateX(0); }
   to { transform: translateX(120vw); }
 }
-
-@keyframes flotarMoneda {
-
-  from {
-    transform:
-      translateY(0)
-      rotate(0deg);
-  }
-
-  to {
-    transform:
-      translateY(-20px)
-      rotate(360deg);
-  }
-}
 }
