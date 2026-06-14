@@ -712,24 +712,6 @@ h2 {
   }
 }
 
-.tuberia::before {
-
-  content: "";
-
-  position: absolute;
-
-  top: -25px;
-
-  left: -10px;
-
-  width: 120px;
-
-  height: 30px;
-
-  background: #2ecc71;
-
-  border: 5px solid #1e8449;
-}
 
 /* =========================
    BEBE CAMINANDO
