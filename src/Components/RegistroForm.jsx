@@ -15,12 +15,14 @@ export default function RegistroForm({
     const doc = new jsPDF();
 
     doc.setFontSize(18);
-    doc.text("🎟 Comprobante de Rifa", 20, 20);
+doc.text("COMPROBANTE DE RIFA", 20, 20);
 
-    doc.setFontSize(12);
-    doc.text(`Nombre: ${nombre}`, 20, 35);
-    doc.text(`Teléfono: ${telefono}`, 20, 45);
-    doc.text(`Números: ${seleccionados.join(", ")}`, 20, 60);
+doc.setFontSize(12);
+doc.text(`Nombre: ${nombre}`, 20, 35);
+doc.text(`Telefono: ${telefono}`, 20, 45);
+
+doc.text("Numeros:", 20, 60);
+doc.text(seleccionados.join(", "), 20, 75);
 
     doc.save("comprobante-rifa.pdf");
   };
