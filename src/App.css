@@ -712,29 +712,6 @@ h2 {
   }
 }
 
-/* =========================
-   TUBERIA
-========================= */
-
-.tuberia {
-
-  position: fixed;
-
-  bottom: 60px;
-
-  right: 40px;
-
-  width: 100px;
-
-  height: 130px;
-
-  background: #27ae60;
-
-  border: 5px solid #1e8449;
-
-  z-index: 2;
-}
-
 .tuberia::before {
 
   content: "";
@@ -923,16 +900,6 @@ h2 {
 .moneda1 {
   top: 80px;
   left: 20%;
-}
-
-.moneda2 {
-  top: 120px;
-  right: 20%;
-}
-
-.moneda3 {
-  top: 220px;
-  left: 75%;
 }
 
 @keyframes flotarMoneda {
