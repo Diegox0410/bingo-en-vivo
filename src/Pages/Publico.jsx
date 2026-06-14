@@ -1,140 +1,129 @@
 import { useEffect, useState } from "react";
 import RegistroForm from "../Components/RegistroForm";
-
-import {
-  collection,
-  onSnapshot,
-} from "firebase/firestore";
-
+import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../services/Firebase";
 
 export default function Publico() {
-  const [participantes, setParticipantes] =
-    useState([]);
+  const [participantes, setParticipantes] = useState([]);
 
-  const [numeroBusqueda,
-    setNumeroBusqueda] =
-    useState("");
+  const [busqueda, setBusqueda] = useState("");
+  const [numeroEncontrado, setNumeroEncontrado] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
+
+  const [seleccionados, setSeleccionados] = useState([]);
 
   useEffect(() => {
-    const unsubscribe =
-      onSnapshot(
-        collection(
-          db,
-          "participantes"
-        ),
-        (snapshot) => {
-          const datos =
-            snapshot.docs.map(
-              (doc) => ({
-                id: doc.id,
-                ...doc.data(),
-              })
-            );
+    const unsubscribe = onSnapshot(collection(db, "participantes"), (snapshot) => {
+      const datos = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
-          setParticipantes(datos);
-        }
-      );
+      setParticipantes(datos);
+    });
 
     return () => unsubscribe();
   }, []);
 
-  const numero =
-    Number(numeroBusqueda);
+  // 🔥 BUSQUEDA AUTOMÁTICA
+  useEffect(() => {
+    const num = Number(busqueda);
 
-  const ocupado =
-    participantes.some(
-      (p) =>
-        Number(p.numero) === numero
+    if (!num || num < 1 || num > 1000) {
+      setNumeroEncontrado(null);
+      setOcupado(false);
+      return;
+    }
+
+    const estaOcupado = participantes.some((p) =>
+      String(p.numero).split(",").includes(String(num))
     );
+
+    setNumeroEncontrado(num);
+    setOcupado(estaOcupado);
+  }, [busqueda, participantes]);
+
+  // ➕ agregar número
+  const agregarNumero = () => {
+    if (ocupado) return;
+
+    if (!seleccionados.includes(numeroEncontrado)) {
+      setSeleccionados([...seleccionados, numeroEncontrado]);
+    }
+  };
+
+  // ❌ eliminar número
+  const eliminarNumero = (num) => {
+    setSeleccionados(seleccionados.filter((n) => n !== num));
+  };
 
   return (
     <div className="publico-container">
 
-      {/* Nubes */}
-      <div className="nube nube1"></div>
-      <div className="nube nube2"></div>
-      <div className="nube nube3"></div>
+      <h1>🎟️ GRAN RIFA BENÉFICA</h1>
 
-      {/* Bebé caminando */}
-      <div className="bebe">
-        👶
-      </div>
-
-      {/* Tubería */}
-      <div className="tuberia"></div>
-
-      <h1>
-        🎟️ GRAN RIFA BENÉFICA
-      </h1>
-
-      <div className="plataformas">
-        <div className="bloque-mario"></div>
-        <div className="bloque-mario"></div>
-        <div className="bloque-mario"></div>
-      </div>
-
-      <h2>
-        Números ocupados:
-        {" "}
-        {participantes.length}
-      </h2>
-
+      {/* 🔵 BUSCADOR */}
       <div className="buscador-card">
 
-        <h2>
-          🔍 Buscar Número
-        </h2>
+        <h2>🔍 Buscar número</h2>
 
         <input
+          className="buscador-input"
           type="number"
           min="1"
           max="1000"
-          placeholder="Ingrese un número"
-          value={numeroBusqueda}
-          onChange={(e) =>
-            setNumeroBusqueda(
-              e.target.value
-            )
-          }
+          placeholder="Escribe un número..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
         />
 
-        {numeroBusqueda &&
-          numero >= 1 &&
-          numero <= 1000 && (
+        {numeroEncontrado && (
+          <div style={{ marginTop: 15 }}>
 
-          <div>
+            <p>
+              Número: <b>{numeroEncontrado}</b>
+            </p>
 
             {ocupado ? (
-              <h2 className="ocupado">
-                🔴 Número Ocupado
-              </h2>
+              <h3 style={{ color: "red" }}>🔴 Ocupado</h3>
             ) : (
-              <h2 className="disponible">
-                🟢 Número Disponible
-              </h2>
+              <>
+                <h3 style={{ color: "green" }}>🟢 Disponible</h3>
+
+                <button
+                  className="btn btn-agregar"
+                  onClick={agregarNumero}
+                >
+                  Agregar número
+                </button>
+              </>
             )}
-
           </div>
-
         )}
-
       </div>
 
-      {numeroBusqueda &&
-        numero >= 1 &&
-        numero <= 1000 &&
-        !ocupado && (
+      {/* 🟡 SELECCIONADOS */}
+      <div className="seleccionados-box">
+        <h3>Números seleccionados</h3>
 
-        <RegistroForm
-          numero={numero}
-          onRegistrado={() =>
-            setNumeroBusqueda("")
-          }
-        />
+        {seleccionados.length === 0 ? (
+          <p>Ninguno seleccionado</p>
+        ) : (
+          seleccionados.map((n) => (
+            <div key={n}>
+              {n}
+              <button onClick={() => eliminarNumero(n)}>❌</button>
+            </div>
+          ))
+        )}
+      </div>
 
-      )}
-
+      {/* 🟢 FORMULARIO */}
+      <RegistroForm
+        seleccionados={seleccionados}
+        setSeleccionados={setSeleccionados}
+        participantes={participantes}
+      />
     </div>
   );
 }
