@@ -7,7 +7,7 @@ import {
   doc,
 } from "firebase/firestore";
 
-import { db } from "../services/firebase";
+import { db } from "../services/Firebase";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 const ADMIN_PASSWORD = "EMILIOSO2026";

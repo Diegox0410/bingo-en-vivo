@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import RegistroForm from "../components/RegistroForm";
+import RegistroForm from "../Components/RegistroForm";
 
 import {
   collection,
