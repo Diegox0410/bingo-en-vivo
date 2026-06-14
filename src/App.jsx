@@ -4,8 +4,8 @@ import {
   Route
 } from "react-router-dom";
 
-import Publico from "./pages/Publico";
-import Admin from "./pages/Admin";
+import Publico from "./Pages/Publico";
+import Admin from "./Pages/Admin";
 
 function App() {
   return (
