@@ -56,11 +56,6 @@ export default function Publico() {
       <div className="nube nube2"></div>
       <div className="nube nube3"></div>
 
-      {/* Monedas */}
-      <div className="moneda moneda1">🪙</div>
-      <div className="moneda moneda2">🪙</div>
-      <div className="moneda moneda3">🪙</div>
-
       {/* Bebé caminando */}
       <div className="bebe">
         👶
