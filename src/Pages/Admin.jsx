@@ -18,6 +18,12 @@ export default function Admin() {
   const [participantes, setParticipantes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
 
+  // 🎯 TABS
+  const [vista, setVista] = useState("tabla"); // tabla | numeros | sorteo
+
+  // 🎲 sorteo
+  const [ganador, setGanador] = useState(null);
+
   useEffect(() => {
     const unsubscribe = onSnapshot(
       collection(db, "participantes"),
@@ -113,7 +119,7 @@ export default function Admin() {
   );
 
   // =========================
-  // 🔥 CONTEO ROBUSTO Y SEGURO
+  // 🔥 CONTEO SEGURO
   // =========================
   const TOTAL_NUMEROS = 1000;
 
@@ -122,22 +128,40 @@ export default function Admin() {
   participantes.forEach((p) => {
     if (!p.numero) return;
 
-    String(p.numero || "")
+    String(p.numero)
       .split(",")
       .map((n) => n.trim())
       .filter(Boolean)
-      .forEach((n) => {
-        numerosUnicos.add(n);
-      });
+      .forEach((n) => numerosUnicos.add(Number(n)));
   });
 
   const ocupados = numerosUnicos.size;
   const disponibles = TOTAL_NUMEROS - ocupados;
 
+  // 🎲 SORTEO
+  const sortear = () => {
+    const lista = Array.from(numerosUnicos);
+
+    if (lista.length === 0) {
+      alert("No hay números para sortear");
+      return;
+    }
+
+    const random = lista[Math.floor(Math.random() * lista.length)];
+    setGanador(random);
+  };
+
   return (
     <div className="admin">
 
       <h1>🔐 Panel Administrador</h1>
+
+      {/* 🧭 TABS */}
+      <div style={{ display: "flex", gap: "10px", margin: "15px 0" }}>
+        <button onClick={() => setVista("tabla")}>📋 Tabla</button>
+        <button onClick={() => setVista("numeros")}>🎟️ Números</button>
+        <button onClick={() => setVista("sorteo")}>🎲 Sorteo</button>
+      </div>
 
       <h2>Participantes: {participantes.length}</h2>
 
@@ -165,41 +189,110 @@ export default function Admin() {
         📥 Exportar Excel
       </button>
 
-      {/* 🔍 BUSCADOR */}
-      <input
-        type="text"
-        placeholder="Buscar por nombre, teléfono o número..."
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-      />
-
+      {/* ========================= */}
       {/* 📋 TABLA */}
-      <table>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Teléfono</th>
-            <th>Número</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
+      {/* ========================= */}
+      {vista === "tabla" && (
+        <>
+          <input
+            type="text"
+            placeholder="Buscar..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
 
-        <tbody>
-          {filtrados.map((p) => (
-            <tr key={p.id}>
-              <td>{p.nombre}</td>
-              <td>{p.telefono}</td>
-              <td>{p.numero}</td>
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Número</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
 
-              <td>
-                <button onClick={() => eliminar(p.id)}>
-                  ❌ Eliminar
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            <tbody>
+              {filtrados.map((p) => (
+                <tr key={p.id}>
+                  <td>{p.nombre}</td>
+                  <td>{p.telefono}</td>
+                  <td>{p.numero}</td>
+                  <td>
+                    <button onClick={() => eliminar(p.id)}>
+                      ❌ Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+
+      {/* ========================= */}
+      {/* 🎟️ MAPA CINE */}
+      {/* ========================= */}
+      {vista === "numeros" && (
+        <div>
+          <h2>🎟️ Mapa de Números</h2>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(20, 1fr)",
+            gap: "5px"
+          }}>
+            {[...Array(1000)].map((_, i) => {
+              const num = i + 1;
+              const ocupado = numerosUnicos.has(num);
+
+              return (
+                <div
+                  key={num}
+                  style={{
+                    padding: "6px",
+                    textAlign: "center",
+                    borderRadius: "5px",
+                    fontSize: "12px",
+                    background: ocupado ? "#e74c3c" : "#2ecc71",
+                    color: "white"
+                  }}
+                >
+                  {num}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ========================= */}
+      {/* 🎲 SORTEO */}
+      {/* ========================= */}
+      {vista === "sorteo" && (
+        <div style={{ textAlign: "center" }}>
+          <h2>🎲 Sorteo en Vivo</h2>
+
+          <button
+            onClick={sortear}
+            style={{
+              padding: "15px",
+              fontSize: "18px",
+              background: "#f39c12",
+              border: "none",
+              borderRadius: "10px",
+              cursor: "pointer"
+            }}
+          >
+            🎰 Sortear ganador
+          </button>
+
+          {ganador && (
+            <h1 style={{ marginTop: "20px", color: "green" }}>
+              🏆 Número ganador: {ganador}
+            </h1>
+          )}
+        </div>
+      )}
 
     </div>
   );
