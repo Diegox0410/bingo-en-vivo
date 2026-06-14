@@ -863,27 +863,6 @@ h2 {
   to { transform: translateX(120vw); }
 }
 
-/* =========================
-   MONEDAS
-========================= */
-
-.moneda {
-
-  position: fixed;
-
-  font-size: 45px;
-
-  z-index: 2;
-
-  animation:
-    flotarMoneda 2s infinite alternate;
-}
-
-.moneda1 {
-  top: 80px;
-  left: 20%;
-}
-
 @keyframes flotarMoneda {
 
   from {
