@@ -6,7 +6,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 
-import { db } from "../services/firebase";
+import { db } from "../services/Firebase";
 
 export default function Publico() {
   const [participantes, setParticipantes] =
