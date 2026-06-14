@@ -1,28 +1,40 @@
 import { useState } from "react";
 import jsPDF from "jspdf";
-
-import {
-  addDoc,
-  collection,
-} from "firebase/firestore";
-
+import { addDoc, collection } from "firebase/firestore";
 import { db } from "../services/Firebase";
 
-export default function RegistroForm({
-  numero,
-  onRegistrado,
-}) {
+export default function RegistroForm({ onRegistrado }) {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
 
-  // 🔥 NUEVO: cantidad de rifas
+  // 🔥 cantidad libre de números
   const [cantidad, setCantidad] = useState(1);
 
-  // 🔥 NUEVO: números generados
-  const [numerosReservados, setNumerosReservados] = useState([]);
+  // 🔥 números seleccionados
+  const [seleccionados, setSeleccionados] = useState([]);
 
-  // 🧾 PDF
-  const generarPDF = (nums) => {
+  // ===============================
+  // TOGGLE DE NÚMEROS
+  // ===============================
+  const toggleNumero = (num) => {
+    setSeleccionados((prev) => {
+      if (prev.includes(num)) {
+        return prev.filter((n) => n !== num);
+      }
+
+      // limitar cantidad seleccionada
+      if (prev.length < cantidad) {
+        return [...prev, num];
+      }
+
+      return prev;
+    });
+  };
+
+  // ===============================
+  // PDF
+  // ===============================
+  const generarPDF = () => {
     const doc = new jsPDF();
 
     doc.setFontSize(18);
@@ -32,48 +44,45 @@ export default function RegistroForm({
     doc.text(`Nombre: ${nombre}`, 20, 35);
     doc.text(`Teléfono: ${telefono}`, 20, 45);
 
-    doc.text("Números reservados:", 20, 60);
+    doc.text("Números seleccionados:", 20, 60);
 
-    nums.forEach((n, i) => {
-      doc.text(`- ${n}`, 20, 75 + i * 10);
-    });
+    doc.text(seleccionados.join(", "), 20, 75);
 
-    doc.text("Gracias por participar 🙌", 20, 140);
+    doc.text("Gracias por participar 🙌", 20, 100);
 
     doc.save("comprobante-rifa.pdf");
   };
 
+  // ===============================
+  // GUARDAR EN FIREBASE
+  // ===============================
   const guardar = async () => {
     if (!nombre || !telefono) {
       alert("Complete todos los campos");
       return;
     }
 
+    if (seleccionados.length !== Number(cantidad)) {
+      alert(`Debes seleccionar ${cantidad} números`);
+      return;
+    }
+
     try {
-      const nuevosNumeros = [];
+      await addDoc(collection(db, "participantes"), {
+        nombre,
+        telefono,
+        estado: "reservado",
 
-      // 🔥 GENERA múltiples números consecutivos desde el seleccionado
-      for (let i = 0; i < cantidad; i++) {
-        nuevosNumeros.push(numero + i);
-      }
+        // 🔥 IMPORTANTE: guardado como string
+        numero: seleccionados.join(","),
+      });
 
-      // 🔥 guarda cada número en Firebase
-      for (let num of nuevosNumeros) {
-        await addDoc(collection(db, "participantes"), {
-          nombre,
-          telefono,
-          numero: num,
-          estado: "reservado",
-          fecha: new Date(),
-        });
-      }
-
-      setNumerosReservados(nuevosNumeros);
-
-      alert("Números reservados correctamente");
+      alert("Reserva guardada correctamente");
 
       setNombre("");
       setTelefono("");
+      setCantidad(1);
+      setSeleccionados([]);
 
       onRegistrado();
     } catch (error) {
@@ -84,22 +93,11 @@ export default function RegistroForm({
   return (
     <div className="registro-form">
 
-      <h2>Número seleccionado: {numero}</h2>
+      <h2>🎟 Reservar números</h2>
 
-      {/* 🔥 MULTISELECTOR */}
-      <div>
-        <label>Cantidad de rifas:</label>
-        <select
-          value={cantidad}
-          onChange={(e) => setCantidad(Number(e.target.value))}
-        >
-          <option value={1}>1 número</option>
-          <option value={2}>2 números</option>
-          <option value={5}>5 números</option>
-          <option value={10}>10 números</option>
-        </select>
-      </div>
-
+      {/* ===================== */}
+      {/* DATOS */}
+      {/* ===================== */}
       <input
         type="text"
         placeholder="Nombre"
@@ -114,16 +112,69 @@ export default function RegistroForm({
         onChange={(e) => setTelefono(e.target.value)}
       />
 
-      <button onClick={guardar}>
-        Reservar Número(s)
+      {/* ===================== */}
+      {/* CANTIDAD LIBRE */}
+      {/* ===================== */}
+      <input
+        type="number"
+        placeholder="¿Cuántos números quieres?"
+        min={1}
+        max={1000}
+        value={cantidad}
+        onChange={(e) => {
+          setCantidad(Number(e.target.value));
+          setSeleccionados([]); // reset al cambiar cantidad
+        }}
+      />
+
+      <p>
+        Seleccionados: {seleccionados.length} / {cantidad}
+      </p>
+
+      {/* ===================== */}
+      {/* GRID 1 - 1000 */}
+      {/* ===================== */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(10, 1fr)",
+          gap: "5px",
+          maxHeight: "300px",
+          overflowY: "scroll",
+        }}
+      >
+        {[...Array(1000)].map((_, i) => {
+          const num = i + 1;
+
+          const selected = seleccionados.includes(num);
+
+          return (
+            <button
+              key={num}
+              onClick={() => toggleNumero(num)}
+              style={{
+                padding: "5px",
+                background: selected ? "green" : "white",
+                color: selected ? "white" : "black",
+                border: "1px solid #ccc",
+                cursor: "pointer",
+              }}
+            >
+              {num}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ===================== */}
+      {/* BOTONES */}
+      {/* ===================== */}
+      <button onClick={guardar} style={{ marginTop: "10px" }}>
+        Confirmar reserva
       </button>
 
-      {/* 🔥 BOTÓN PDF (solo aparece si ya reservó) */}
-      {numerosReservados.length > 0 && (
-        <button
-          onClick={() => generarPDF(numerosReservados)}
-          style={{ marginTop: "10px" }}
-        >
+      {seleccionados.length > 0 && (
+        <button onClick={generarPDF} style={{ marginLeft: "10px" }}>
           Descargar comprobante PDF
         </button>
       )}
