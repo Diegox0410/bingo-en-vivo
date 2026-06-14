@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import {
   collection,
   onSnapshot,
@@ -10,12 +9,12 @@ import {
 import { db } from "../services/Firebase";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+
 const ADMIN_PASSWORD = "EMILIOSO2026";
 
 export default function Admin() {
   const [autenticado, setAutenticado] = useState(false);
   const [password, setPassword] = useState("");
-
   const [participantes, setParticipantes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
 
@@ -31,10 +30,11 @@ export default function Admin() {
         setParticipantes(datos);
       }
     );
-    
+
     return () => unsubscribe();
   }, []);
 
+  // 🔐 LOGIN
   if (!autenticado) {
     return (
       <div className="login-admin">
@@ -44,21 +44,15 @@ export default function Admin() {
           type="password"
           placeholder="Contraseña"
           value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
+          onChange={(e) => setPassword(e.target.value)}
         />
 
         <button
           onClick={() => {
-            if (
-              password === ADMIN_PASSWORD
-            ) {
+            if (password === ADMIN_PASSWORD) {
               setAutenticado(true);
             } else {
-              alert(
-                "Contraseña incorrecta"
-              );
+              alert("Contraseña incorrecta");
             }
           }}
         >
@@ -68,149 +62,118 @@ export default function Admin() {
     );
   }
 
+  // ❌ ELIMINAR
   const eliminar = async (id) => {
-    const confirmar = window.confirm(
-      "¿Eliminar participante?"
-    );
-
+    const confirmar = window.confirm("¿Eliminar participante?");
     if (!confirmar) return;
 
     try {
-      await deleteDoc(
-        doc(
-          db,
-          "participantes",
-          id
-        )
-      );
+      await deleteDoc(doc(db, "participantes", id));
     } catch (error) {
       console.error(error);
       alert("Error al eliminar");
     }
   };
+
+  // 📥 EXPORTAR EXCEL
   const exportarExcel = () => {
+    const datos = participantes.map((p) => ({
+      Nombre: p.nombre || "",
+      Telefono: p.telefono || "",
+      Numero: p.numero || "",
+      Fecha: p.fecha
+        ? new Date(p.fecha.seconds * 1000).toLocaleString()
+        : "",
+    }));
 
-  const datos = participantes.map((p) => ({
+    const hoja = XLSX.utils.json_to_sheet(datos);
+    const libro = XLSX.utils.book_new();
 
-    Nombre: p.nombre || "",
+    XLSX.utils.book_append_sheet(libro, hoja, "Participantes");
 
-    Telefono: p.telefono || "",
-
-    Numero: p.numero || "",
-
-    Fecha: p.fecha
-      ? new Date(
-          p.fecha.seconds * 1000
-        ).toLocaleString()
-      : "",
-
-  }));
-
-  const hoja =
-    XLSX.utils.json_to_sheet(
-      datos
-    );
-
-  const libro =
-    XLSX.utils.book_new();
-
-  XLSX.utils.book_append_sheet(
-    libro,
-    hoja,
-    "Participantes"
-  );
-
-  const excelBuffer =
-    XLSX.write(libro, {
+    const excelBuffer = XLSX.write(libro, {
       bookType: "xlsx",
       type: "array",
     });
 
-  const archivo =
-    new Blob(
-      [excelBuffer],
-      {
-        type:
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      }
-    );
+    const archivo = new Blob([excelBuffer], {
+      type:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
 
-  saveAs(
-    archivo,
-    `participantes_${Date.now()}.xlsx`
-  );
-};
+    saveAs(archivo, `participantes_${Date.now()}.xlsx`);
+  };
 
+  // 🔍 FILTRO
   const filtrados = participantes.filter(
     (p) =>
-      (p.nombre || "")
-        .toLowerCase()
-        .includes(
-          busqueda.toLowerCase()
-        ) ||
-      (p.telefono || "")
-        .toString()
-        .includes(busqueda) ||
-      (p.numero || "")
-        .toString()
-        .includes(busqueda)
+      (p.nombre || "").toLowerCase().includes(busqueda.toLowerCase()) ||
+      (p.telefono || "").toString().includes(busqueda) ||
+      (p.numero || "").toString().includes(busqueda)
   );
-const TOTAL_NUMEROS = 1000;
 
-const ocupados = participantes.length;
+  // =========================
+  // 🔥 CONTEO ROBUSTO Y SEGURO
+  // =========================
+  const TOTAL_NUMEROS = 1000;
 
-const disponibles =
-  TOTAL_NUMEROS - ocupados;
+  const numerosUnicos = new Set();
+
+  participantes.forEach((p) => {
+    if (!p.numero) return;
+
+    String(p.numero || "")
+      .split(",")
+      .map((n) => n.trim())
+      .filter(Boolean)
+      .forEach((n) => {
+        numerosUnicos.add(n);
+      });
+  });
+
+  const ocupados = numerosUnicos.size;
+  const disponibles = TOTAL_NUMEROS - ocupados;
+
   return (
     <div className="admin">
 
-      <h1>
-        🔐 Panel Administrador
-      </h1>
+      <h1>🔐 Panel Administrador</h1>
 
-      <h2>
-        Participantes:
-        {" "}
-        {participantes.length}
-      </h2>
-      <div
-  style={{
-    marginBottom: "20px",
-  }}
-><div className="estadisticas">
+      <h2>Participantes: {participantes.length}</h2>
 
-  <div className="card-estadistica">
-    <h3>🎟️ Total</h3>
-    <p>{TOTAL_NUMEROS}</p>
-  </div>
+      {/* 📊 ESTADÍSTICAS */}
+      <div className="estadisticas">
 
-  <div className="card-estadistica">
-    <h3>🔴 Ocupados</h3>
-    <p>{ocupados}</p>
-  </div>
+        <div className="card-estadistica">
+          <h3>🎟️ Total</h3>
+          <p>{TOTAL_NUMEROS}</p>
+        </div>
 
-  <div className="card-estadistica">
-    <h3>🟢 Disponibles</h3>
-    <p>{disponibles}</p>
-  </div>
+        <div className="card-estadistica">
+          <h3>🔴 Ocupados</h3>
+          <p>{ocupados}</p>
+        </div>
 
-</div>
-  <button
-    onClick={exportarExcel}
-  >
-    📥 Exportar Excel
-  </button>
-</div>
+        <div className="card-estadistica">
+          <h3>🟢 Disponibles</h3>
+          <p>{disponibles}</p>
+        </div>
 
+      </div>
+
+      <button onClick={exportarExcel}>
+        📥 Exportar Excel
+      </button>
+
+      {/* 🔍 BUSCADOR */}
       <input
         type="text"
         placeholder="Buscar por nombre, teléfono o número..."
         value={busqueda}
-        onChange={(e) =>
-          setBusqueda(e.target.value)
-        }
+        onChange={(e) => setBusqueda(e.target.value)}
       />
 
+      {/* 📋 TABLA */}
       <table>
         <thead>
           <tr>
@@ -229,11 +192,7 @@ const disponibles =
               <td>{p.numero}</td>
 
               <td>
-                <button
-                  onClick={() =>
-                    eliminar(p.id)
-                  }
-                >
+                <button onClick={() => eliminar(p.id)}>
                   ❌ Eliminar
                 </button>
               </td>

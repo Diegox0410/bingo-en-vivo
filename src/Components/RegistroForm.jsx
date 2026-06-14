@@ -32,7 +32,7 @@ export default function RegistroForm({
       doc.text(seleccionados.join(", "), 20, 75);
 
       doc.text(
-        "Te agradecemos por ayudar a nuestro emprendimiento",
+        "Te agradecemos por ayudar a nuestro emilioso",
         20,
         95
       );
