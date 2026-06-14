@@ -553,49 +553,6 @@ h2 {
       translateX(120vw);
   }
 }
-/* MONEDAS */
-
-.moneda {
-
-  position: fixed;
-
-  font-size: 50px;
-
-  z-index: 1;
-
-  animation:
-    flotarMoneda 2s infinite alternate;
-}
-
-.moneda1 {
-  top: 120px;
-  right: 10%;
-}
-
-.moneda2 {
-  top: 220px;
-  left: 10%;
-}
-
-.moneda3 {
-  top: 320px;
-  right: 25%;
-}
-
-@keyframes flotarMoneda {
-
-  from {
-    transform:
-      translateY(0px)
-      rotate(0deg);
-  }
-
-  to {
-    transform:
-      translateY(-20px)
-      rotate(360deg);
-  }
-}
 .bloques {
 
   display: flex;
