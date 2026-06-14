@@ -24,6 +24,9 @@ doc.text(`Telefono: ${telefono}`, 20, 45);
 doc.text("Numeros:", 20, 60);
 doc.text(seleccionados.join(", "), 20, 75);
 
+doc.text("Te agradecemos por ayudar a nuestro emilioso:", 20, 60);
+doc.text(seleccionados.join(", "), 20, 75);
+
     doc.save("comprobante-rifa.pdf");
   };
 
